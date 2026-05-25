@@ -143,8 +143,8 @@ export function GoldDashboard({ initialData }: Props) {
     );
   }
 
-  const { ornamentSell, ornamentBuy, dailyChange } = data.thaiGold;
-  const prevPrice = ornamentSell - dailyChange;
+  const { ornamentSell, ornamentBuy, barSell, dailyChange } = data.thaiGold;
+  const prevBarSell = barSell - dailyChange;
 
   return (
     <>
@@ -168,9 +168,9 @@ export function GoldDashboard({ initialData }: Props) {
 
       <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-4 sm:gap-5 lg:gap-6 mb-4 sm:mb-6">
         <PriceCard
-          targetPrice={ornamentSell}
+          targetPrice={barSell}
           change={dailyChange}
-          changePercent={prevPrice > 0 ? (dailyChange / prevPrice) * 100 : 0}
+          changePercent={prevBarSell > 0 ? (dailyChange / prevBarSell) * 100 : 0}
         />
         <AIInsight
           loading={aiLoading}

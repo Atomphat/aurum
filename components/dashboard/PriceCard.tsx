@@ -86,10 +86,10 @@ export function PriceCard({ targetPrice, change = 0, changePercent = 0 }: PriceC
       <div className="relative z-10 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-7 sm:mb-8">
         <div>
           <div className="font-display italic font-normal text-[15px] sm:text-base text-ink-muted">
-            Thai Gold 96.5%
+            ทองคำแท่ง 96.5%
           </div>
           <div className="text-xs sm:text-[13px] text-ink-faint mt-1">
-            ทองคำแท่ง · สมาคมค้าทองคำ
+            ราคาขาย · สมาคมค้าทองคำ
           </div>
         </div>
 
@@ -155,7 +155,7 @@ export function PriceCard({ targetPrice, change = 0, changePercent = 0 }: PriceC
           <ArrowUpRight className={cn("w-3 h-3", !isUp && "rotate-90")} />
           {isUp ? "+" : ""}{change.toFixed(2)} ({isUp ? "+" : ""}{changePercent.toFixed(2)}%)
         </span>
-        <span className="text-xs sm:text-[13px] text-ink-muted">ส่วนต่างซื้อ-ขาย · สมาคมค้าทองคำ</span>
+        <span className="text-xs sm:text-[13px] text-ink-muted">เปลี่ยนแปลงรายวัน · สมาคมค้าทองคำ</span>
       </div>
 
       {/* Chart */}
