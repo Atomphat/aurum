@@ -1,5 +1,3 @@
-import * as cheerio from "cheerio";
-
 export interface GoldSpot {
   xauUsd: number;
   usdThb: number;
@@ -27,8 +25,7 @@ export async function fetchTwelveData(): Promise<GoldSpot> {
   };
 }
 
-// คำนวณราคาทองไทยโดยประมาณจากราคา spot เมื่อ scrape ไม่ได้
-// สูตร: spot/oz × THB × (15.244g/31.1035g) × 0.965 (96.5% purity)
+// fallback เมื่อ API สมาคมล้มเหลว
 function calcThaiGoldFromSpot(xauUsd: number, usdThb: number): ThaiGold {
   const rawPerBaht = (xauUsd * usdThb * 15.244) / 31.1035;
   const barBase    = Math.round((rawPerBaht * 0.965) / 50) * 50;
@@ -43,49 +40,37 @@ function calcThaiGoldFromSpot(xauUsd: number, usdThb: number): ThaiGold {
 
 export async function fetchThaiGoldPrice(spot?: GoldSpot): Promise<ThaiGold> {
   try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 8000);
+    const res = await fetch(
+      "https://www.goldtraders.or.th/api/GoldPrices/Latest?readjson=false",
+      { next: { revalidate: 300 } }
+    );
+    if (!res.ok) throw new Error(`goldtraders API status ${res.status}`);
 
-    const res = await fetch("https://classic.goldtraders.or.th/", {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-        "Accept-Language": "th-TH,th;q=0.9,en-US;q=0.8,en;q=0.7",
-        "Cache-Control": "no-cache",
-      },
-      next: { revalidate: 300 },
-      signal: controller.signal,
-    });
+    const json = await res.json();
+    console.log("[gold-price] raw API response:", JSON.stringify(json).slice(0, 300));
 
-    clearTimeout(timer);
+    // รองรับหลาย field name ที่ API อาจส่งกลับมา
+    const get = (obj: Record<string, unknown>, ...keys: string[]): number => {
+      for (const k of keys) {
+        const v = obj[k] ?? obj[k.toLowerCase()] ?? obj[k.toUpperCase()];
+        if (v !== undefined && v !== null) return parseFloat(String(v));
+      }
+      return NaN;
+    };
 
-    if (!res.ok) throw new Error(`goldtraders status ${res.status}`);
+    const ornamentSell = get(json, "BLSell", "bl_sell", "ornamentSell", "OrnamentSell");
+    const ornamentBuy  = get(json, "BLBuy",  "bl_buy",  "ornamentBuy",  "OrnamentBuy");
+    const barSell      = get(json, "OMSell", "om_sell", "barSell",      "BarSell");
+    const barBuy       = get(json, "OMBuy",  "om_buy",  "barBuy",       "BarBuy");
+    const updatedAt    = String(json.UpdateTime ?? json.updateTime ?? json.update_time ?? json.AsTime ?? "");
 
-    const html = await res.text();
-    const $ = cheerio.load(html);
-
-    const parse = (id: string) =>
-      parseFloat($(`#${id}`).text().replace(/[^0-9.]/g, ""));
-
-    const ornamentSell = parse("DetailPlace_uc_goldprices1_lblBLSell");
-    const ornamentBuy  = parse("DetailPlace_uc_goldprices1_lblBLBuy");
-    const barSell      = parse("DetailPlace_uc_goldprices1_lblOMSell");
-    const barBuy       = parse("DetailPlace_uc_goldprices1_lblOMBuy");
-
-    // ถ้า parse ไม่ได้ค่า (NaN) ให้ fallback
     if (isNaN(ornamentSell) || ornamentSell === 0) {
-      throw new Error("parse failed — empty values");
+      throw new Error(`unexpected API shape — ornamentSell = ${ornamentSell}`);
     }
 
-    return {
-      ornamentSell,
-      ornamentBuy,
-      barSell,
-      barBuy,
-      updatedAt: $("#DetailPlace_uc_goldprices1_lblAsTime").text().trim(),
-    };
+    return { ornamentSell, ornamentBuy, barSell, barBuy, updatedAt };
   } catch (err) {
-    console.warn("[gold-price] goldtraders scrape failed, using spot fallback:", err);
+    console.warn("[gold-price] goldtraders API failed, using spot fallback:", err);
     if (!spot) throw err;
     return calcThaiGoldFromSpot(spot.xauUsd, spot.usdThb);
   }
