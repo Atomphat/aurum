@@ -143,7 +143,7 @@ export function GoldDashboard({ initialData }: Props) {
     );
   }
 
-  const { ornamentSell, dailyChange } = data.thaiGold;
+  const { ornamentSell, ornamentBuy, dailyChange } = data.thaiGold;
   const prevPrice = ornamentSell - dailyChange;
 
   return (
