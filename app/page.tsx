@@ -17,6 +17,7 @@ async function getGoldPrice(): Promise<GoldData | null> {
         barSell:      thai.barSell,
         barBuy:       thai.barBuy,
         updatedAt:    thai.updatedAt,
+        dailyChange:  thai.dailyChange,
       },
       fetchedAt: new Date().toISOString(),
     };
