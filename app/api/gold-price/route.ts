@@ -26,10 +26,8 @@ export const revalidate = 300;
 
 export async function GET() {
   try {
-    const [spot, thai] = await Promise.all([
-      fetchTwelveData(),
-      fetchThaiGoldPrice(),
-    ]);
+    const spot = await fetchTwelveData();
+    const thai = await fetchThaiGoldPrice(spot);
 
     saveSnapshot({
       xauUsd: spot.xauUsd, usdThb: spot.usdThb,

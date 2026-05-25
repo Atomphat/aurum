@@ -6,10 +6,8 @@ import { fetchTwelveData, fetchThaiGoldPrice } from "@/lib/gold-price";
 
 async function getGoldPrice(): Promise<GoldData | null> {
   try {
-    const [spot, thai] = await Promise.all([
-      fetchTwelveData(),
-      fetchThaiGoldPrice(),
-    ]);
+    const spot = await fetchTwelveData();
+    const thai = await fetchThaiGoldPrice(spot);
     return {
       xauUsd: spot.xauUsd,
       usdThb: spot.usdThb,
