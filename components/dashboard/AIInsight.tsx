@@ -88,7 +88,7 @@ export function AIInsight({ verdict, highlight, body, indicators, loading }: AII
       </p>
 
       {/* Indicators */}
-      <div className="relative z-10 grid grid-cols-3 gap-3 sm:gap-4 pt-5 sm:pt-6 border-t border-white/10">
+      {indicators.length > 0 && <div className="relative z-10 grid grid-cols-3 gap-3 sm:gap-4 pt-5 sm:pt-6 border-t border-white/10">
         {indicators.map((ind) => (
           <motion.div
             key={ind.label}
@@ -106,7 +106,7 @@ export function AIInsight({ verdict, highlight, body, indicators, loading }: AII
             </div>
           </motion.div>
         ))}
-      </div>
+      </div>}
     </motion.article>
   );
 }
