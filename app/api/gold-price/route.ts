@@ -44,6 +44,7 @@ export async function GET() {
         barSell:      thai.barSell,
         barBuy:       thai.barBuy,
         updatedAt:    thai.updatedAt,
+        dailyChange:  thai.dailyChange,
       },
       fetchedAt: new Date().toISOString(),
     });

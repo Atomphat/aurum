@@ -22,7 +22,7 @@ interface PriceCardProps {
   changePercent: number;
 }
 
-export function PriceCard({ targetPrice, change, changePercent }: PriceCardProps) {
+export function PriceCard({ targetPrice, change = 0, changePercent = 0 }: PriceCardProps) {
   const [active, setActive] = useState<Timeframe>("1D");
   const [chartType, setChartType] = useState<ChartType>("line");
   const [displayPrice, setDisplayPrice] = useState(targetPrice * 0.957);
