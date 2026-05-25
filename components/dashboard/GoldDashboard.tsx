@@ -178,9 +178,10 @@ export function GoldDashboard({ initialData }: Props) {
           highlight={aiInsight?.highlight ?? "กำลังวิเคราะห์..."}
           body={aiInsight?.body ?? ""}
           indicators={aiInsight?.indicators ?? [
-            { label: "USD/THB", value: fmt(data.usdThb), status: "—" },
-            { label: "Spread", value: `${(((ornamentSell - ornamentBuy) / ornamentBuy) * 100).toFixed(2)}%`, status: "—" },
             { label: "Gold Spot", value: `$${Math.round(data.xauUsd)}`, status: "—" },
+            { label: "USD/THB", value: fmt(data.usdThb), status: "—" },
+            { label: "แท่ง ขาย", value: `฿${fmt(data.thaiGold.barSell, 0)}`, status: "—" },
+            { label: "แท่ง รับซื้อ", value: `฿${fmt(data.thaiGold.barBuy, 0)}`, status: "—" },
           ]}
         />
       </div>
