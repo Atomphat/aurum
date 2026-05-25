@@ -13,6 +13,7 @@ interface ThaiGold {
   barSell: number;
   barBuy: number;
   updatedAt: string;
+  dailyChange: number;
 }
 
 export interface GoldData {
@@ -142,7 +143,8 @@ export function GoldDashboard({ initialData }: Props) {
     );
   }
 
-  const { ornamentSell, ornamentBuy } = data.thaiGold;
+  const { ornamentSell, dailyChange } = data.thaiGold;
+  const prevPrice = ornamentSell - dailyChange;
 
   return (
     <>
@@ -167,8 +169,8 @@ export function GoldDashboard({ initialData }: Props) {
       <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-4 sm:gap-5 lg:gap-6 mb-4 sm:mb-6">
         <PriceCard
           targetPrice={ornamentSell}
-          change={ornamentSell - ornamentBuy}
-          changePercent={((ornamentSell - ornamentBuy) / ornamentBuy) * 100}
+          change={dailyChange}
+          changePercent={prevPrice > 0 ? (dailyChange / prevPrice) * 100 : 0}
         />
         <AIInsight
           loading={aiLoading}

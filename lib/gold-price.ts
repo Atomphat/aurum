@@ -9,6 +9,20 @@ export interface ThaiGold {
   barSell: number;
   barBuy: number;
   updatedAt: string;
+  dailyChange: number;
+}
+
+function calcThaiGoldFromSpot(xauUsd: number, usdThb: number): ThaiGold {
+  const rawPerBaht = (xauUsd * usdThb * 15.244) / 31.1035;
+  const barBase    = Math.round((rawPerBaht * 0.965) / 50) * 50;
+  return {
+    barSell:      barBase,
+    barBuy:       barBase - 200,
+    ornamentSell: barBase + 800,
+    ornamentBuy:  barBase - 1600,
+    updatedAt:    "ประมาณการจากราคา Spot",
+    dailyChange:  0,
+  };
 }
 
 export async function fetchTwelveData(): Promise<GoldSpot> {
@@ -25,50 +39,33 @@ export async function fetchTwelveData(): Promise<GoldSpot> {
   };
 }
 
-// fallback เมื่อ API สมาคมล้มเหลว
-function calcThaiGoldFromSpot(xauUsd: number, usdThb: number): ThaiGold {
-  const rawPerBaht = (xauUsd * usdThb * 15.244) / 31.1035;
-  const barBase    = Math.round((rawPerBaht * 0.965) / 50) * 50;
-  return {
-    barSell:      barBase,
-    barBuy:       barBase - 200,
-    ornamentSell: barBase + 800,
-    ornamentBuy:  barBase - 1600,
-    updatedAt: "ประมาณการจากราคา Spot",
-  };
-}
-
 export async function fetchThaiGoldPrice(spot?: GoldSpot): Promise<ThaiGold> {
   try {
     const res = await fetch(
-      "https://www.goldtraders.or.th/api/GoldPrices/Latest?readjson=false",
+      "https://www.goldtraders.or.th/api/GoldPrices/Latest?readjson=true",
       { next: { revalidate: 300 } }
     );
     if (!res.ok) throw new Error(`goldtraders API status ${res.status}`);
 
-    const json = await res.json();
-    console.log("[gold-price] raw API response:", JSON.stringify(json).slice(0, 300));
+    const j = await res.json();
 
-    // รองรับหลาย field name ที่ API อาจส่งกลับมา
-    const get = (obj: Record<string, unknown>, ...keys: string[]): number => {
-      for (const k of keys) {
-        const v = obj[k] ?? obj[k.toLowerCase()] ?? obj[k.toUpperCase()];
-        if (v !== undefined && v !== null) return parseFloat(String(v));
-      }
-      return NaN;
-    };
-
-    const ornamentSell = get(json, "BLSell", "bl_sell", "ornamentSell", "OrnamentSell");
-    const ornamentBuy  = get(json, "BLBuy",  "bl_buy",  "ornamentBuy",  "OrnamentBuy");
-    const barSell      = get(json, "OMSell", "om_sell", "barSell",      "BarSell");
-    const barBuy       = get(json, "OMBuy",  "om_buy",  "barBuy",       "BarBuy");
-    const updatedAt    = String(json.UpdateTime ?? json.updateTime ?? json.update_time ?? json.AsTime ?? "");
+    const ornamentSell = parseFloat(j.oM965_SellPrice);
+    const ornamentBuy  = parseFloat(j.oM965_BuyPrice);
+    const barSell      = parseFloat(j.bL_SellPrice);
+    const barBuy       = parseFloat(j.bL_BuyPrice);
 
     if (isNaN(ornamentSell) || ornamentSell === 0) {
-      throw new Error(`unexpected API shape — ornamentSell = ${ornamentSell}`);
+      throw new Error(`unexpected API response: ornamentSell = ${ornamentSell}`);
     }
 
-    return { ornamentSell, ornamentBuy, barSell, barBuy, updatedAt };
+    return {
+      ornamentSell,
+      ornamentBuy,
+      barSell,
+      barBuy,
+      updatedAt:   j.asTime ?? "",
+      dailyChange: parseFloat(j.priceChangeFromPrevDayLast) ?? 0,
+    };
   } catch (err) {
     console.warn("[gold-price] goldtraders API failed, using spot fallback:", err);
     if (!spot) throw err;
