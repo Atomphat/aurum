@@ -48,16 +48,16 @@ function toStats(data: GoldData): StatItem[] {
       trend: "neutral",
     },
     {
-      label: "ทองรูปพรรณ (ขาย)",
-      value: `฿${fmt(data.thaiGold.ornamentSell, 0)}`,
-      meta: "สมาคมค้าทองคำ",
-      trend: "up",
-    },
-    {
       label: "ทองคำแท่ง (ขาย)",
       value: `฿${fmt(data.thaiGold.barSell, 0)}`,
       meta: "สมาคมค้าทองคำ",
       trend: "up",
+    },
+    {
+      label: "ทองคำแท่ง (รับซื้อ)",
+      value: `฿${fmt(data.thaiGold.barBuy, 0)}`,
+      meta: "สมาคมค้าทองคำ",
+      trend: "neutral",
     },
   ];
 }
