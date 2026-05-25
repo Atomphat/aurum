@@ -28,14 +28,17 @@ export async function fetchTwelveData(): Promise<GoldSpot> {
 }
 
 // คำนวณราคาทองไทยโดยประมาณจากราคา spot เมื่อ scrape ไม่ได้
+// สูตร: spot/oz × THB × (15.244g/31.1035g) × 0.965 (96.5% purity)
 function calcThaiGoldFromSpot(xauUsd: number, usdThb: number): ThaiGold {
-  // 1 troy oz = 31.1035g, 1 บาทน้ำหนัก = 15.244g
-  const pricePerBaht = (xauUsd * usdThb * 15.244) / 31.1035;
-  const barSell      = Math.round(pricePerBaht / 50) * 50 + 300;
-  const barBuy       = barSell - 500;
-  const ornamentSell = barSell + 250;
-  const ornamentBuy  = barSell - 200;
-  return { ornamentSell, ornamentBuy, barSell, barBuy, updatedAt: "ประมาณการจากราคา Spot" };
+  const rawPerBaht = (xauUsd * usdThb * 15.244) / 31.1035;
+  const barBase    = Math.round((rawPerBaht * 0.965) / 50) * 50;
+  return {
+    barSell:      barBase,
+    barBuy:       barBase - 200,
+    ornamentSell: barBase + 800,
+    ornamentBuy:  barBase - 1600,
+    updatedAt: "ประมาณการจากราคา Spot",
+  };
 }
 
 export async function fetchThaiGoldPrice(spot?: GoldSpot): Promise<ThaiGold> {
